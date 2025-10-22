@@ -4,37 +4,38 @@
 
 typedef struct {
     int *data;
-    int cap;
-    int inicio;
-    int fim;
-    int tam;
+    int K;      
+    int inicio; 
+    int fim;    
+    int tam;    
 } FCirc;
 
-void init_Fila(FCirc *f, int cap) {
-    f->data = (int *)malloc((cap + 1) * sizeof(int)); // 1 extra
-    f->cap = cap + 1;
-    f->inicio = 0;
-    f->fim = 0;
-    f->tam = 0;
-}
+void init_Fila(FCirc *fila, int K) {
+    fila->data = (int *)malloc(K * sizeof(int));
+    fila->K = K;
+    fila->inicio = 0;
+    fila->fim = 0;
+    fila->tam = 0;
+    for (int i = 0; i < K; i++)
+        fila->data[i] = -1; 
+    }
 
 int isFull(FCirc *fila) {
-    return ((fila->fim + 1) % fila->cap) == fila->inicio;
+    return fila->tam == fila->K;
 }
 
 int isEmpty(FCirc *fila) {
-    return fila->inicio == fila->fim;
+    return fila->tam == 0;
 }
 
 void add(FCirc *fila, int valor) {
+    fila->data[fila->fim] = valor;
     if (isFull(fila)) {
-        fila->inicio = (fila->inicio + 1) % fila->cap; // substitui o mais antigo
+        fila->inicio = (fila->inicio + 1) % fila->K;
     } else {
         fila->tam++;
     }
-
-    fila->data[fila->fim] = valor;
-    fila->fim = (fila->fim + 1) % fila->cap;
+    fila->fim = (fila->fim + 1) % fila->K;
 }
 
 void remover(FCirc *fila) {
@@ -43,43 +44,68 @@ void remover(FCirc *fila) {
         return;
     }
     printf("%d\n", fila->data[fila->inicio]);
-    fila->inicio = (fila->inicio + 1) % fila->cap;
+    fila->data[fila->inicio] = -1;
+    fila->inicio = (fila->inicio + 1) % fila->K;
     fila->tam--;
 }
 
-void listar(FCirc *fila) {
+void list(FCirc *fila) {
     if (isEmpty(fila)) {
-        printf("fila vazia\n");
+        printf("EMPTY\n");
         return;
     }
-
-    int i = fila->inicio;
-    for (int c = 0; c < fila->tam; c++) {
-        printf("%d", fila->data[i]);
-        if (c < fila->tam - 1)
-            printf(" ");
-        i = (i + 1) % fila->cap;
+    int idx = fila->inicio;
+    for (int i = 0; i < fila->tam; i++) {
+        printf("%d", fila->data[idx]);
+        if (i < fila->tam - 1) printf(" ");
+        idx = (idx + 1) % fila->K;
     }
     printf("\n");
 }
 
 void print(FCirc *fila) {
-    for (int i = 0; i < fila->cap; i++) {
-        int ocupado = 0;
+    for (int i = 0; i < fila->K; i++) {
+        int idx = fila->inicio;
+        int encontrado = 0;
+
         for (int j = 0; j < fila->tam; j++) {
-            int pos = (fila->inicio + j) % fila->cap;
-            if (pos == i) {
-                printf("%d", fila->data[pos]);
-                ocupado = 1;
+            if (idx == i) {
+                encontrado = 1;
                 break;
             }
+            idx = (idx + 1) % fila->K;
         }
-        if (!ocupado)
+
+        if (encontrado)
+            printf("%d", fila->data[i]);
+        else
             printf("-");
-        if (i < fila->cap - 1)
+
+        if (i < fila->K - 1)
             printf(" ");
     }
     printf("\n");
+}
+
+
+void increase(FCirc *fila, int inc) {
+    int novo_K = fila->K + inc;
+    int *novo_data = (int *)malloc(novo_K * sizeof(int));
+
+    for (int i = 0; i < novo_K; i++)
+        novo_data[i] = -1;
+
+    int idx_antigo = fila->inicio;
+    for (int i = 0; i < fila->tam; i++) {
+        novo_data[i] = fila->data[idx_antigo];
+        idx_antigo = (idx_antigo + 1) % fila->K;
+    }
+
+    free(fila->data);
+    fila->data = novo_data;
+    fila->K = novo_K;
+    fila->inicio = 0;
+    fila->fim = fila->tam;
 }
 
 void end(FCirc *fila) {
@@ -107,16 +133,21 @@ int main() {
             remover(&fila);
         } 
         else if (strcmp(comando, "LIST") == 0) {
-            listar(&fila);
+            list(&fila);
         } 
         else if (strcmp(comando, "PRINT") == 0) {
             print(&fila);
         } 
+        else if (strcmp(comando, "INCREASE") == 0) {
+            int inc;
+            scanf("%d", &inc);
+            increase(&fila, inc);
+        }
         else if (strcmp(comando, "END") == 0) {
             end(&fila);
             break; 
         }
     }
-    
-    return 0; 
+
+    return 0;
 }
