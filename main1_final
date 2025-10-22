@@ -55,7 +55,7 @@ void remover(FCirc *fila) {
 
 void listar(FCirc *fila) {
     if (fila->tam == 0) {
-        printf("\n");
+        printf("lista vazia\n");
         return;
     }
     int i = fila->inicio;
@@ -113,10 +113,8 @@ int main() {
             increase(&fila);
         } 
         else if (strcmp(comando, "END") == 0) {
-            break;
+            end(&fila);
         }
     }
-
-    end(&fila);
     return 0;
 }
